@@ -56,9 +56,6 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TSubclassOf<ACharacter> TargetCharacterBlueprint;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TSubclassOf<UInterface> TargetDamagableInterface;
-
     // Toggle laser state
     void ToggleLaser();
 
@@ -67,7 +64,4 @@ protected:
     // Handle overlap
     UFUNCTION()
     void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-    UFUNCTION()
-    void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };
