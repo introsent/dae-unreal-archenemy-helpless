@@ -78,15 +78,12 @@ void ABeamObstacle::CallDoDamage(AActor* OtherActor)
 {
     if (OtherActor->GetClass()->ImplementsInterface(UDamagableInterface::StaticClass()))
     {
-        UE_LOG(LogTemp, Warning, TEXT("Damaged Player Character!"));
-        IDamagableInterface* Damagable = Cast<IDamagableInterface>(OtherActor);
-        if (Damagable)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Conversion happened"));
-            bool IsDead;
-            Damagable->DoDamage(1, IsDead);
-           
-        }
+        //UE_LOG(LogTemp, Warning, TEXT("Damaged Player Character!"));
+        //IDamagableInterface* Damagable = Cast<IDamagableInterface>(OtherActor);
+    
+        bool IsDead;
+        IDamagableInterface::Execute_DoDamage(OtherActor, 1, IsDead);
+
     }
 
     TArray<UActorComponent*> Components;
@@ -96,15 +93,11 @@ void ABeamObstacle::CallDoDamage(AActor* OtherActor)
     {
         if (Component->GetClass()->ImplementsInterface(UDamagableInterface::StaticClass()))
         {
-            UE_LOG(LogTemp, Warning, TEXT("Not yet damage, but it actor implements interface!"));
-            IDamagableInterface* Damagable = Cast<IDamagableInterface>(Component);
-            if (Damagable)
-            {
-                bool IsDead;
-                Damagable->DoDamage(1, IsDead);
-                UE_LOG(LogTemp, Warning, TEXT("Damage HURAAAAh!"));
-                break;
-            }
+
+            bool IsDead;
+            IDamagableInterface::Execute_DoDamage(Component, 1, IsDead);
+            break;
+            
         }
     }
 
