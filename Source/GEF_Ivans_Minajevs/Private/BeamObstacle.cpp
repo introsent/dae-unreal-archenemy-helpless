@@ -17,24 +17,21 @@
 
 #include "DamagableInterface.h"
 
-
 class UNiagaraSystem;
 class UNiagaraComponent;
 ABeamObstacle::ABeamObstacle()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
 
     damageAmount = 1;
     LaserOnTime = 1.0f;
     LaserOffTime = 2.0f;
     bIsLaserActive = false;
+    didDamageCharacter = false;
 
     // Create components
     TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
-    TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &ABeamObstacle::OnOverlapBegin);
     RootComponent = TriggerBox;
-
-
 
     BeamFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("BeamFX"));
     BeamFX->SetupAttachment(RootComponent);
@@ -62,6 +59,11 @@ void ABeamObstacle::ToggleLaser()
 {
     bIsLaserActive = !bIsLaserActive;
 
+    if (bIsLaserActive && didDamageCharacter)
+    {
+        didDamageCharacter = false;
+    }
+
     // Update Niagara system visibility
     if (BeamFX)
     {
@@ -71,6 +73,53 @@ void ABeamObstacle::ToggleLaser()
     // Adjust timer interval
     float NextInterval = bIsLaserActive ? LaserOnTime : LaserOffTime;
     GetWorldTimerManager().SetTimer(LaserTimerHandle, this, &ABeamObstacle::ToggleLaser, NextInterval, false);
+}
+
+
+void ABeamObstacle::PerformLineTrace(FVector StartPos, FVector EndPos)
+{
+    // Perform line trace
+    FHitResult HitResult;
+    FCollisionQueryParams TraceParams(FName(TEXT("BeamTrace")), true, this);
+    TraceParams.bReturnPhysicalMaterial = false;
+
+    bool bHit = GetWorld()->LineTraceSingleByChannel(
+        HitResult,
+        StartPos,
+        EndPos,
+        ECC_Visibility,
+        TraceParams
+    );
+
+    // If hit, apply damage
+    if (bHit && HitResult.GetActor())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Beam hit: %s"), *HitResult.GetActor()->GetName());
+        if (ACharacter* OverlappingCharacter = Cast<ACharacter>(HitResult.GetActor()))
+        {
+            if (TargetCharacterBlueprint && OverlappingCharacter->IsA(TargetCharacterBlueprint))
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Overlapped with the target Blueprint Character!"));
+                didDamageCharacter = true;
+                CallDoDamage(HitResult.GetActor());
+               
+            }
+        }
+    }
+}
+
+void ABeamObstacle::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    if (!BeamFX)
+        return;
+
+    // If laser active and character is not damaged, perform line trace
+    if (bIsLaserActive && !didDamageCharacter)
+    {
+        PerformLineTrace(BeamFX->GetComponentLocation(), BeamFX->GetComponentLocation() + TargetPosition);
+    }
 }
 
 void ABeamObstacle::CallDoDamage(AActor* OtherActor)
@@ -94,30 +143,6 @@ void ABeamObstacle::CallDoDamage(AActor* OtherActor)
             IDamagableInterface::Execute_DoDamage(Component, 1, IsDead);
             break;
             
-        }
-    }
-}
-
-
-
-// Handle overlap
-void ABeamObstacle::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-
-    if (OtherActor && (OtherActor != this))
-    {
-        // Log the name of the overlapping actor
-        UE_LOG(LogTemp, Warning, TEXT("Overlapped with: %s"), *OtherActor->GetName());
-
-        // Check if OtherActor is a character
-        if (ACharacter* OverlappingCharacter = Cast<ACharacter>(OtherActor))
-        {
-            // Further check if it's the specific Blueprint class
-            if (TargetCharacterBlueprint && OverlappingCharacter->IsA(TargetCharacterBlueprint))
-            {
-                UE_LOG(LogTemp, Warning, TEXT("Overlapped with the target Blueprint Character!"));
-                CallDoDamage(OtherActor);
-            }
         }
     }
 }

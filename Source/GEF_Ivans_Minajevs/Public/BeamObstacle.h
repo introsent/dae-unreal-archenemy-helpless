@@ -19,6 +19,7 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    virtual void Tick(float DeltaTime) override;
 
     // Timer for laser toggle
     FTimerHandle LaserTimerHandle;
@@ -33,11 +34,19 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Beam Settings")
     float LaserOffTime;
 
+    // Target position
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trigger box")
+    FVector TargetPosition;
+
     // Trigger box
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Beam Settings")
     UBoxComponent* TriggerBox;
 
-    // Trigger box
+    // Damage state
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool didDamageCharacter;
+
+    // Damage on character
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     int damageAmount;
 
@@ -45,7 +54,6 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Beam Settings")
     UNiagaraComponent* BeamFX;
 
-    // Niagara system for beam
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Beam Settings")
     UNiagaraSystem* BeamNiagaraSystem;
 
@@ -59,9 +67,7 @@ protected:
     // Toggle laser state
     void ToggleLaser();
 
-    void CallDoDamage(AActor* OtherActor);
+    void PerformLineTrace(FVector StartPos, FVector EndPos);
 
-    // Handle overlap
-    UFUNCTION()
-    void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+    void CallDoDamage(AActor* OtherActor);
 };
