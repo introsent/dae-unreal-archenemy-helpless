@@ -47,7 +47,7 @@ protected:
     bool didDamageCharacter;
 
     // Damage on character
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int damageAmount;
 
     // Niagara beam effect

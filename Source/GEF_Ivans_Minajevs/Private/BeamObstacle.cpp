@@ -127,7 +127,7 @@ void ABeamObstacle::CallDoDamage(AActor* OtherActor)
     if (OtherActor->GetClass()->ImplementsInterface(UDamagableInterface::StaticClass()))
     {
         bool IsDead;
-        IDamagableInterface::Execute_DoDamage(OtherActor, 1, IsDead);
+        IDamagableInterface::Execute_DoDamage(OtherActor, damageAmount, IsDead);
 
     }
 
@@ -140,7 +140,7 @@ void ABeamObstacle::CallDoDamage(AActor* OtherActor)
         {
 
             bool IsDead;
-            IDamagableInterface::Execute_DoDamage(Component, 1, IsDead);
+            IDamagableInterface::Execute_DoDamage(Component, damageAmount, IsDead);
             break;
             
         }
